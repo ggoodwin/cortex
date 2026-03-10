@@ -1,0 +1,27 @@
+{
+  "name": "cortex",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AI memory and model routing companion for AI agents",
+  "license": "MIT",
+  "scripts": {
+    "dev": "pnpm --filter @cortex/server dev & pnpm --filter @cortex/web dev",
+    "dev:server": "pnpm --filter @cortex/server dev",
+    "dev:web": "pnpm --filter @cortex/web dev",
+    "build": "pnpm --filter @cortex/shared build && pnpm --filter @cortex/server build && pnpm --filter @cortex/web build",
+    "build:shared": "pnpm --filter @cortex/shared build",
+    "build:server": "pnpm --filter @cortex/shared build && pnpm --filter @cortex/server build",
+    "build:web": "pnpm --filter @cortex/shared build && pnpm --filter @cortex/web build",
+    "seed": "pnpm --filter @cortex/server seed",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.15",
+    "typescript": "^5.9.3"
+  }
+}
