@@ -1,36 +1,84 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { api } from "../api/client";
 import { Link } from "react-router-dom";
 
-interface MemoryResult {
+interface MemoryItem {
   id: string;
   content: string;
   category: string;
   project: string;
   tags: string[];
   importance: number;
-  score: number;
+  score?: number;
   created_at: string;
+}
+
+interface BrowseResponse {
+  ok: boolean;
+  memories: { id: string; payload: Omit<MemoryItem, "id" | "score"> }[];
+  next_offset?: string;
 }
 
 export function MemorySearch() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
   const [project, setProject] = useState("");
-  const [results, setResults] = useState<MemoryResult[]>([]);
+  const [memories, setMemories] = useState<MemoryItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
+  const [nextOffset, setNextOffset] = useState<string | undefined>();
+
+  const browse = useCallback(
+    async (offset?: string) => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams({ limit: "20" });
+        if (category) params.set("category", category);
+        if (project) params.set("project", project);
+        if (offset) params.set("offset", offset);
+
+        const res = await api.get<BrowseResponse>(`/memory/browse?${params}`);
+        const items = res.memories.map(m => ({ id: m.id, ...m.payload }));
+        const sorted = items.sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? ""));
+        if (offset) {
+          setMemories(prev => [...prev, ...sorted]);
+        } else {
+          setMemories(sorted);
+        }
+        setNextOffset(res.next_offset);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [category, project]
+  );
+
+  useEffect(() => {
+    browse();
+  }, [browse]);
 
   const search = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!query.trim()) return;
+    if (!query.trim()) {
+      setSearched(false);
+      browse();
+      return;
+    }
     setLoading(true);
+    setSearched(true);
     try {
       const body: Record<string, unknown> = { query, limit: 20 };
       if (category) body.category = category;
       if (project) body.project = project;
 
-      const res = await api.post<{ ok: boolean; data: MemoryResult[] }>("/memory/search", body);
-      setResults(res.data);
+      const res = await api.post<{
+        ok: boolean;
+        data: { id: string; score: number; payload: Omit<MemoryItem, "id" | "score"> }[];
+      }>("/memory/search", body);
+      setMemories(res.data.map(r => ({ id: r.id, score: r.score, ...r.payload })));
+      setNextOffset(undefined);
     } catch (err) {
       console.error(err);
     } finally {
@@ -40,7 +88,7 @@ export function MemorySearch() {
 
   return (
     <div className="max-w-4xl">
-      <h2 className="text-2xl font-bold mb-6">Memory Search</h2>
+      <h2 className="text-2xl font-bold mb-6">Memories</h2>
 
       <form onSubmit={search} className="flex flex-col gap-3 mb-6">
         <input
@@ -75,7 +123,7 @@ export function MemorySearch() {
       </form>
 
       <div className="flex flex-col gap-3">
-        {results.map(m => (
+        {memories.map(m => (
           <Link
             key={m.id}
             to={`/memory/${m.id}`}
@@ -86,15 +134,16 @@ export function MemorySearch() {
                 <span className="text-xs text-zinc-500">{m.project}</span>
               </div>
               <div className="flex gap-2 items-center">
-                <span className="text-xs text-zinc-500">score: {m.score.toFixed(3)}</span>
+                {m.score != null && <span className="text-xs text-zinc-500">score: {m.score.toFixed(3)}</span>}
                 <span className="text-xs px-1.5 py-0.5 rounded bg-zinc-800 text-yellow-400">
-                  {"*".repeat(Math.min(m.importance, 5))}
+                  {"*".repeat(Math.min(m.importance ?? 0, 5))}
                 </span>
+                <span className="text-xs text-zinc-600">{new Date(m.created_at).toLocaleDateString()}</span>
               </div>
             </div>
             <p className="text-sm text-zinc-300 line-clamp-3">{m.content}</p>
             <div className="flex gap-1 mt-2 flex-wrap">
-              {m.tags.map(t => (
+              {(m.tags ?? []).map(t => (
                 <span key={t} className="text-xs px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">
                   #{t}
                 </span>
@@ -102,8 +151,18 @@ export function MemorySearch() {
             </div>
           </Link>
         ))}
-        {results.length === 0 && query && !loading && (
-          <p className="text-sm text-zinc-500 text-center py-8">No results found</p>
+
+        {memories.length === 0 && !loading && (
+          <p className="text-sm text-zinc-500 text-center py-8">{searched ? "No results found" : "No memories yet"}</p>
+        )}
+
+        {nextOffset && !searched && (
+          <button
+            onClick={() => browse(nextOffset)}
+            disabled={loading}
+            className="mx-auto px-4 py-2 text-sm text-zinc-400 hover:text-zinc-200 disabled:opacity-50">
+            {loading ? "Loading..." : "Load more"}
+          </button>
         )}
       </div>
     </div>

@@ -1,6 +1,6 @@
+import { COLLECTIONS } from "@cortex/shared";
 import { QdrantClient } from "@qdrant/js-client-rest";
 import { config } from "../config.js";
-import { COLLECTIONS } from "@cortex/shared";
 
 let client: QdrantClient | null = null;
 let currentUrl = "";
@@ -37,35 +37,60 @@ export function excludeTrashed(filter?: Record<string, unknown>): Record<string,
   return { ...filter, must };
 }
 
+async function ensureIndexes(
+  name: string,
+  indexes?: { keyword?: string[]; integer?: string[]; text?: string[]; bool?: string[] }
+): Promise<void> {
+  if (!indexes) return;
+  const qdrant = getQdrantClient();
+  const info = await qdrant.getCollection(name);
+  const existing = new Set(Object.keys(info.payload_schema ?? {}));
+
+  for (const field of indexes.keyword ?? []) {
+    if (!existing.has(field)) {
+      await qdrant.createPayloadIndex(name, { field_name: field, field_schema: "keyword" });
+    }
+  }
+  for (const field of indexes.integer ?? []) {
+    if (!existing.has(field)) {
+      await qdrant.createPayloadIndex(name, { field_name: field, field_schema: "integer" });
+    }
+  }
+  for (const field of indexes.text ?? []) {
+    if (!existing.has(field)) {
+      await qdrant.createPayloadIndex(name, { field_name: field, field_schema: "text" });
+    }
+  }
+  for (const field of indexes.bool ?? []) {
+    if (!existing.has(field)) {
+      await qdrant.createPayloadIndex(name, { field_name: field, field_schema: "bool" });
+    }
+  }
+}
+
 async function ensureCollectionExists(
   name: string,
   vectorSize: number,
-  indexes?: { keyword?: string[]; integer?: string[]; text?: string[] }
+  indexes?: { keyword?: string[]; integer?: string[]; text?: string[]; bool?: string[] }
 ): Promise<void> {
   const qdrant = getQdrantClient();
   try {
     const exists = await qdrant.collectionExists(name);
-    if (exists.exists) return;
+    if (!exists.exists) {
+      await qdrant.createCollection(name, {
+        vectors: { size: vectorSize, distance: "Cosine" },
+        optimizers_config: { indexing_threshold: 100 }
+      });
+    }
   } catch {
-    // collection doesn't exist
+    await qdrant.createCollection(name, {
+      vectors: { size: vectorSize, distance: "Cosine" },
+      optimizers_config: { indexing_threshold: 100 }
+    });
   }
 
-  await qdrant.createCollection(name, {
-    vectors: { size: vectorSize, distance: "Cosine" },
-    optimizers_config: { indexing_threshold: 100 }
-  });
-
-  if (indexes) {
-    for (const field of indexes.keyword ?? []) {
-      await qdrant.createPayloadIndex(name, { field_name: field, field_schema: "keyword" });
-    }
-    for (const field of indexes.integer ?? []) {
-      await qdrant.createPayloadIndex(name, { field_name: field, field_schema: "integer" });
-    }
-    for (const field of indexes.text ?? []) {
-      await qdrant.createPayloadIndex(name, { field_name: field, field_schema: "text" });
-    }
-  }
+  // Always reconcile indexes — handles both new and existing collections
+  await ensureIndexes(name, indexes);
 }
 
 export async function ensureCollections(): Promise<void> {
@@ -78,7 +103,8 @@ export async function ensureCollections(): Promise<void> {
   });
 
   await ensureCollectionExists(COLLECTIONS.ROUTING, dim, {
-    keyword: ["preset_name", "category_slug", "_type"]
+    keyword: ["preset_name", "category_slug", "_type"],
+    bool: ["is_active"]
   });
 
   await ensureCollectionExists(COLLECTIONS.AUTH, dim, {

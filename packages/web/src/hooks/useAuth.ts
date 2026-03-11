@@ -14,7 +14,7 @@ export function useAuth() {
     loading: true
   });
 
-  const checkAuth = useCallback(async () => {
+  const checkAuth = useCallback(async (retries = 3) => {
     try {
       const res = await api.get<{ ok: boolean; data: { username: string; auth_enabled: boolean } }>("/auth/me");
       setState({
@@ -22,7 +22,13 @@ export function useAuth() {
         authEnabled: res.data.auth_enabled,
         loading: false
       });
-    } catch {
+    } catch (err: unknown) {
+      // Network error (backend not ready yet) — retry
+      const isNetworkError = err instanceof TypeError;
+      if (isNetworkError && retries > 0) {
+        setTimeout(() => checkAuth(retries - 1), 1000);
+        return;
+      }
       setState({ username: null, authEnabled: true, loading: false });
     }
   }, []);

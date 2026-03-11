@@ -28,7 +28,7 @@ export function Settings() {
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
               <span className="text-zinc-500">Status:</span>
-              <span className={`ml-2 ${health.status === "healthy" ? "text-green-400" : "text-red-400"}`}>
+              <span className={`ml-2 ${health.status === "ok" ? "text-green-400" : "text-red-400"}`}>
                 {health.status}
               </span>
             </div>

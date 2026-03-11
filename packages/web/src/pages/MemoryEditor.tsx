@@ -27,18 +27,19 @@ export function MemoryEditor() {
   const [importance, setImportance] = useState(5);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [showTrashConfirm, setShowTrashConfirm] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     api
-      .get<{ ok: boolean; data: Memory }>(`/memory/${id}`)
+      .get<{ ok: boolean; data: { id: string; payload: Omit<Memory, "id"> } }>(`/memory/${id}`)
       .then(r => {
-        const m = r.data;
+        const m = { id: r.data.id, ...r.data.payload };
         setMemory(m);
         setContent(m.content);
         setCategory(m.category);
         setProject(m.project);
-        setTags(m.tags.join(", "));
+        setTags((m.tags ?? []).join(", "));
         setImportance(m.importance);
       })
       .catch(e => setError(e.message));
@@ -89,7 +90,9 @@ export function MemoryEditor() {
           <button onClick={() => navigate("/memory")} className="px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-200">
             Cancel
           </button>
-          <button onClick={trash} className="px-3 py-1.5 text-sm text-red-400 hover:text-red-300">
+          <button
+            onClick={() => setShowTrashConfirm(true)}
+            className="px-3 py-1.5 text-sm text-red-400 hover:text-red-300">
             Trash
           </button>
           <button
@@ -157,6 +160,27 @@ export function MemoryEditor() {
           <span>Accessed: {memory.access_count}x</span>
         </div>
       </div>
+
+      {showTrashConfirm && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-lg p-6 max-w-sm w-full mx-4">
+            <h3 className="text-lg font-semibold mb-2">Trash Memory</h3>
+            <p className="text-sm text-zinc-400 mb-6">
+              Are you sure you want to trash this memory? It can be restored later.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowTrashConfirm(false)}
+                className="px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-200">
+                Cancel
+              </button>
+              <button onClick={trash} className="px-4 py-1.5 bg-red-600 hover:bg-red-700 rounded text-sm font-medium">
+                Trash
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

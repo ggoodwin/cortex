@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
+import { capitalize } from "../libs/utils";
 
 interface Stats {
   total: number;
@@ -43,7 +44,7 @@ export function Dashboard() {
           <div className="text-sm text-zinc-400">Qdrant</div>
           <div
             className={`text-lg font-semibold ${health?.qdrant === "connected" ? "text-green-400" : "text-red-400"}`}>
-            {health?.qdrant ?? "..."}
+            {capitalize(health?.qdrant ?? "") ?? "..."}
           </div>
         </div>
         <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
