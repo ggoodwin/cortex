@@ -46,11 +46,18 @@ export function RoutingConfig() {
     await load();
   };
 
+  const [error, setError] = useState("");
+
   const saveRule = async () => {
     if (!editingRule || !selected) return;
-    await api.patch(`/routing/presets/${selected}/rules/${editingRule.slug}`, { model: editingRule.model });
-    setEditingRule(null);
-    await load();
+    setError("");
+    try {
+      await api.patch(`/routing/presets/${selected}/rules/${editingRule.slug}`, { model: editingRule.model });
+      setEditingRule(null);
+      await load();
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to save rule");
+    }
   };
 
   if (loading) return <p className="text-zinc-500">Loading...</p>;
@@ -64,7 +71,7 @@ export function RoutingConfig() {
           <button
             key={p.name}
             onClick={() => setSelected(p.name)}
-            className={`px-3 py-1.5 rounded text-sm ${
+            className={`px-3 py-1.5 rounded text-sm cursor-pointer ${
               selected === p.name
                 ? "bg-zinc-700 text-white"
                 : "bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800"
@@ -74,6 +81,8 @@ export function RoutingConfig() {
           </button>
         ))}
       </div>
+
+      {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
 
       {activePreset && (
         <>
@@ -85,7 +94,7 @@ export function RoutingConfig() {
             {!activePreset.is_active && (
               <button
                 onClick={() => activate(activePreset.name)}
-                className="px-3 py-1.5 bg-green-700 hover:bg-green-600 rounded text-sm">
+                className="px-3 py-1.5 bg-green-700 hover:bg-green-600 rounded text-sm cursor-pointer">
                 Set Active
               </button>
             )}
@@ -116,12 +125,14 @@ export function RoutingConfig() {
                               className="flex-1 bg-zinc-800 border border-zinc-600 rounded px-2 py-1 text-xs focus:outline-none"
                               onKeyDown={e => e.key === "Enter" && saveRule()}
                             />
-                            <button onClick={saveRule} className="text-xs text-green-400 hover:text-green-300">
+                            <button
+                              onClick={saveRule}
+                              className="text-xs text-green-400 hover:text-green-300 cursor-pointer">
                               Save
                             </button>
                             <button
                               onClick={() => setEditingRule(null)}
-                              className="text-xs text-zinc-500 hover:text-zinc-300">
+                              className="text-xs text-zinc-500 hover:text-zinc-300 cursor-pointer">
                               Cancel
                             </button>
                           </div>
@@ -140,7 +151,7 @@ export function RoutingConfig() {
                         {!editingRule && (
                           <button
                             onClick={() => setEditingRule({ slug: rule.category_slug, model: rule.model })}
-                            className="text-xs text-zinc-500 hover:text-zinc-300">
+                            className="text-xs text-zinc-500 hover:text-zinc-300 cursor-pointer">
                             Edit
                           </button>
                         )}
