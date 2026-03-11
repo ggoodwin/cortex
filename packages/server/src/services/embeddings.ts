@@ -1,30 +1,30 @@
-import OpenAI from 'openai'
-import { config } from '../config.js'
+import OpenAI from "openai";
+import { config } from "../config.js";
 
-let client: OpenAI | null = null
-let lastApiKey = ''
+let client: OpenAI | null = null;
+let lastApiKey = "";
 
 function getClient(): OpenAI {
-  const { apiKey, baseUrl } = config.embedding
+  const { apiKey, baseUrl } = config.embedding;
   if (!client || apiKey !== lastApiKey) {
     if (!apiKey) {
-      throw new Error('No embedding API key configured. Set EMBEDDING_API_KEY in .env')
+      throw new Error("No embedding API key configured. Set EMBEDDING_API_KEY in .env");
     }
-    client = new OpenAI({ apiKey, baseURL: baseUrl })
-    lastApiKey = apiKey
+    client = new OpenAI({ apiKey, baseURL: baseUrl });
+    lastApiKey = apiKey;
   }
-  return client
+  return client;
 }
 
 export async function generateEmbedding(text: string): Promise<number[]> {
-  const openai = getClient()
-  const { model, dimensions } = config.embedding
+  const openai = getClient();
+  const { model, dimensions } = config.embedding;
 
   const response = await openai.embeddings.create({
     model,
     input: text,
-    dimensions,
-  })
+    dimensions
+  });
 
-  return response.data[0].embedding
+  return response.data[0].embedding;
 }

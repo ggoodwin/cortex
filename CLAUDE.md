@@ -44,5 +44,29 @@ pnpm dev                    # Start server + frontend
 
 - `pnpm dev` — Dev server + frontend
 - `pnpm build` — Build all packages
+- `pnpm test` — Run all tests (all packages)
 - `pnpm seed` — Seed routing presets
-- `pnpm --filter @cortex/server typecheck` — Type check server
+- `pnpm typecheck` — Type check all packages
+- `pnpm lint` — Lint all packages
+- `pnpm lint:fix` — Lint + auto-fix
+
+## Testing
+
+- **Framework**: Vitest 4 + @testing-library/react + jsdom
+- **Web tests**: `packages/web/tests/` — mirrors `src/` structure
+- Run web tests: `pnpm --filter @cortex/web test`
+- Run in watch mode: `pnpm --filter @cortex/web test:watch`
+- Run with coverage: `pnpm --filter @cortex/web test:ci`
+- Config: `packages/web/vitest.config.ts`
+- Setup: `packages/web/tests/setup.ts` (jest-dom matchers + localStorage mock)
+
+## Build Script
+
+`build.sh` or `build.ps1` — Full CI-style pipeline that runs in order:
+
+1. Clean (`node_modules`, `package-lock.json`, `tsconfig.tsbuildinfo`)
+2. `pnpm install --frozen-lockfile` (falls back to `--no-frozen-lockfile`)
+3. Typecheck (`pnpm typecheck`)
+4. Lint (`pnpm lint`, auto-fixes if possible)
+5. Test (`pnpm test`)
+6. Build (`pnpm build`)

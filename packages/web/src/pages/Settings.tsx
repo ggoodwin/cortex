@@ -1,19 +1,22 @@
-import { useEffect, useState } from 'react'
-import { api } from '../api/client'
+import { useEffect, useState } from "react";
+import { api } from "../api/client";
 
 interface Health {
-  status: string
-  qdrant: string
-  uptime: number
-  collections: Record<string, { points: number }>
+  status: string;
+  qdrant: string;
+  uptime: number;
+  collections: Record<string, { points: number }>;
 }
 
 export function Settings() {
-  const [health, setHealth] = useState<Health | null>(null)
+  const [health, setHealth] = useState<Health | null>(null);
 
   useEffect(() => {
-    api.get<{ ok: boolean; data: Health }>('/health').then((r) => setHealth(r.data)).catch(() => {})
-  }, [])
+    api
+      .get<{ ok: boolean; data: Health }>("/health")
+      .then(r => setHealth(r.data))
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="max-w-2xl">
@@ -25,11 +28,15 @@ export function Settings() {
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
               <span className="text-zinc-500">Status:</span>
-              <span className={`ml-2 ${health.status === 'healthy' ? 'text-green-400' : 'text-red-400'}`}>{health.status}</span>
+              <span className={`ml-2 ${health.status === "healthy" ? "text-green-400" : "text-red-400"}`}>
+                {health.status}
+              </span>
             </div>
             <div>
               <span className="text-zinc-500">Qdrant:</span>
-              <span className={`ml-2 ${health.qdrant === 'connected' ? 'text-green-400' : 'text-red-400'}`}>{health.qdrant}</span>
+              <span className={`ml-2 ${health.qdrant === "connected" ? "text-green-400" : "text-red-400"}`}>
+                {health.qdrant}
+              </span>
             </div>
             <div>
               <span className="text-zinc-500">Uptime:</span>
@@ -58,10 +65,12 @@ export function Settings() {
       <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
         <h3 className="text-sm font-medium text-zinc-400 mb-3">API Info</h3>
         <div className="text-sm text-zinc-400">
-          <p className="mb-1">Base URL: <span className="font-mono text-zinc-300">http://localhost:4000/api</span></p>
+          <p className="mb-1">
+            Base URL: <span className="font-mono text-zinc-300">http://localhost:4000/api</span>
+          </p>
           <p>Docs: See README.md for full API reference</p>
         </div>
       </div>
     </div>
-  )
+  );
 }

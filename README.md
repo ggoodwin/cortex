@@ -31,28 +31,28 @@ Server runs at `http://localhost:4000/api`, frontend at `http://localhost:5173`.
 
 ### Memory
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/memory` | Store new memory |
-| `POST` | `/api/memory/search` | Semantic search |
-| `GET` | `/api/memory/:id` | Get memory by ID |
-| `PATCH` | `/api/memory/:id` | Update memory |
-| `DELETE` | `/api/memory/:id` | Soft delete |
-| `POST` | `/api/memory/:id/restore` | Restore trashed |
-| `GET` | `/api/memory/browse` | Browse with filters |
-| `GET` | `/api/memory/stats` | Aggregate stats |
+| Method   | Path                      | Description         |
+| -------- | ------------------------- | ------------------- |
+| `POST`   | `/api/memory`             | Store new memory    |
+| `POST`   | `/api/memory/search`      | Semantic search     |
+| `GET`    | `/api/memory/:id`         | Get memory by ID    |
+| `PATCH`  | `/api/memory/:id`         | Update memory       |
+| `DELETE` | `/api/memory/:id`         | Soft delete         |
+| `POST`   | `/api/memory/:id/restore` | Restore trashed     |
+| `GET`    | `/api/memory/browse`      | Browse with filters |
+| `GET`    | `/api/memory/stats`       | Aggregate stats     |
 
 ### Routing
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/routing/presets` | List all presets |
-| `GET` | `/api/routing/presets/:name` | Get preset details |
-| `PUT` | `/api/routing/presets/:name` | Create/replace preset |
-| `PATCH` | `/api/routing/presets/:name/rules/:slug` | Update rule model |
-| `POST` | `/api/routing/resolve` | Resolve task to model |
-| `GET` | `/api/routing/active` | Get active preset |
-| `PUT` | `/api/routing/active` | Set active preset |
+| Method  | Path                                     | Description           |
+| ------- | ---------------------------------------- | --------------------- |
+| `GET`   | `/api/routing/presets`                   | List all presets      |
+| `GET`   | `/api/routing/presets/:name`             | Get preset details    |
+| `PUT`   | `/api/routing/presets/:name`             | Create/replace preset |
+| `PATCH` | `/api/routing/presets/:name/rules/:slug` | Update rule model     |
+| `POST`  | `/api/routing/resolve`                   | Resolve task to model |
+| `GET`   | `/api/routing/active`                    | Get active preset     |
+| `PUT`   | `/api/routing/active`                    | Set active preset     |
 
 ### Example: Route a Task
 
@@ -63,6 +63,7 @@ curl -X POST http://localhost:4000/api/routing/resolve \
 ```
 
 Response:
+
 ```json
 {
   "ok": true,
@@ -105,10 +106,52 @@ docker compose --profile full up
 
 Set `QDRANT_URL` and `QDRANT_API_KEY` in `.env` to your Qdrant Cloud cluster.
 
+## Testing
+
+Tests live in `packages/web/tests/` and mirror the `src/` directory structure:
+
+```text
+tests/
+  setup.ts                   Test setup (jest-dom matchers, localStorage mock)
+  api/client.test.ts         API client unit tests
+  hooks/useAuth.test.ts      Auth hook tests
+  components/Layout.test.tsx Layout component tests
+  pages/
+    Login.test.tsx           Login page tests
+    Dashboard.test.tsx       Dashboard page tests
+    MemorySearch.test.tsx    Memory search tests
+    RoutingTest.test.tsx     Route test page tests
+    Settings.test.tsx        Settings page tests
+```
+
+```bash
+pnpm test                              # All packages
+pnpm --filter @cortex/web test         # Web only
+pnpm --filter @cortex/web test:watch   # Watch mode
+pnpm --filter @cortex/web test:ci      # With coverage
+```
+
+## Build Script
+
+`build.sh` or `build.ps1` runs a full CI-style pipeline:
+
+1. **Clean** — removes `node_modules`, `package-lock.json`, `tsconfig.tsbuildinfo`
+2. **Install** — `pnpm install --frozen-lockfile` (falls back to unfrozen)
+3. **Typecheck** — `pnpm typecheck`
+4. **Lint** — `pnpm lint` (auto-fixes if initial run fails)
+5. **Test** — `pnpm test`
+6. **Build** — `pnpm build`
+
+```bash
+chmod +x build.sh
+./build.sh
+```
+
 ## Tech Stack
 
 - Hono + TypeScript + Node 22
 - React 19 + Vite + Tailwind CSS 4
+- Vitest 4 + @testing-library/react + jsdom
 - Qdrant (vector database)
 - OpenAI embeddings (text-embedding-3-small)
 - pnpm workspace monorepo

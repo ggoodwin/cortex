@@ -14,7 +14,9 @@
     "build:server": "pnpm --filter @cortex/shared build && pnpm --filter @cortex/server build",
     "build:web": "pnpm --filter @cortex/shared build && pnpm --filter @cortex/web build",
     "seed": "pnpm --filter @cortex/server seed",
-    "lint": "pnpm -r lint",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "pnpm -t test",
     "typecheck": "pnpm -r typecheck"
   },
   "engines": {
@@ -22,6 +24,11 @@
   },
   "devDependencies": {
     "@types/node": "^22.19.15",
-    "typescript": "^5.9.3"
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "prettier": "^3.8.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.0"
   }
 }

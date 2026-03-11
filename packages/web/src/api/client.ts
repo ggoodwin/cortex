@@ -1,51 +1,51 @@
-const BASE = '/api'
+const BASE = "/api";
 
-let authToken: string | null = localStorage.getItem('cortex_token')
+let authToken: string | null = localStorage.getItem("cortex_token");
 
 export function setToken(token: string | null) {
-  authToken = token
+  authToken = token;
   if (token) {
-    localStorage.setItem('cortex_token', token)
+    localStorage.setItem("cortex_token", token);
   } else {
-    localStorage.removeItem('cortex_token')
+    localStorage.removeItem("cortex_token");
   }
 }
 
 export function getToken(): string | null {
-  return authToken
+  return authToken;
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string> ?? {}),
-  }
+    "Content-Type": "application/json",
+    ...((options.headers as Record<string, string>) ?? {})
+  };
 
   if (authToken) {
-    headers['Authorization'] = `Bearer ${authToken}`
+    headers["Authorization"] = `Bearer ${authToken}`;
   }
 
   const res = await fetch(`${BASE}${path}`, {
     ...options,
-    headers,
-  })
+    headers
+  });
 
-  const json = await res.json()
+  const json = await res.json();
 
   if (!res.ok) {
-    throw new Error(json.error ?? `Request failed: ${res.status}`)
+    throw new Error(json.error ?? `Request failed: ${res.status}`);
   }
 
-  return json
+  return json;
 }
 
 export const api = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, body?: unknown) =>
-    request<T>(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
+    request<T>(path, { method: "POST", body: body ? JSON.stringify(body) : undefined }),
   put: <T>(path: string, body?: unknown) =>
-    request<T>(path, { method: 'PUT', body: body ? JSON.stringify(body) : undefined }),
+    request<T>(path, { method: "PUT", body: body ? JSON.stringify(body) : undefined }),
   patch: <T>(path: string, body?: unknown) =>
-    request<T>(path, { method: 'PATCH', body: body ? JSON.stringify(body) : undefined }),
-  delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
-}
+    request<T>(path, { method: "PATCH", body: body ? JSON.stringify(body) : undefined }),
+  delete: <T>(path: string) => request<T>(path, { method: "DELETE" })
+};
