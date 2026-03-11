@@ -12,7 +12,8 @@ export default defineConfig({
         changeOrigin: true
       }
     },
-    host: true
+    host: true,
+    allowedHosts: ["your-local-domain.com"]
   },
   build: {
     outDir: "dist"
