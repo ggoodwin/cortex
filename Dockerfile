@@ -19,16 +19,10 @@ RUN pnpm build
 # Copy web dist into server public dir for static serving
 RUN cp -r packages/web/dist packages/server/public
 
-# Create a standalone deploy bundle with real node_modules (no symlinks)
-RUN pnpm --filter @cortex/server deploy /app/deploy
-
-# Production
-FROM node:22-slim
-WORKDIR /app
-COPY --from=base /app/deploy/dist ./dist
-COPY --from=base /app/deploy/node_modules ./node_modules
-COPY --from=base /app/packages/server/public ./public
+# Remove dev dependencies
+RUN pnpm prune --prod
 
 ENV NODE_ENV=production
 EXPOSE 4000
+WORKDIR /app/packages/server
 CMD ["node", "dist/index.js"]
