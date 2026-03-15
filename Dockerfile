@@ -19,15 +19,15 @@ RUN pnpm build
 # Copy web dist into server public dir for static serving
 RUN cp -r packages/web/dist packages/server/public
 
+# Create a standalone deploy bundle with real node_modules (no symlinks)
+RUN pnpm --filter @cortex/server deploy /app/deploy
+
 # Production
 FROM node:22-slim
 WORKDIR /app
-COPY --from=base /app/packages/server/dist ./dist
+COPY --from=base /app/deploy/dist ./dist
+COPY --from=base /app/deploy/node_modules ./node_modules
 COPY --from=base /app/packages/server/public ./public
-COPY --from=base /app/packages/server/package.json ./
-COPY --from=base /app/packages/shared/dist ./node_modules/@cortex/shared/dist
-COPY --from=base /app/packages/shared/package.json ./node_modules/@cortex/shared/
-RUN npm install --omit=dev
 
 ENV NODE_ENV=production
 EXPOSE 4000
