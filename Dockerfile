@@ -21,14 +21,13 @@ RUN cp -r packages/web/dist packages/server/public
 
 # Production
 FROM node:22-slim
-RUN corepack enable && corepack prepare pnpm@latest --activate
 WORKDIR /app
 COPY --from=base /app/packages/server/dist ./dist
 COPY --from=base /app/packages/server/public ./public
 COPY --from=base /app/packages/server/package.json ./
 COPY --from=base /app/packages/shared/dist ./node_modules/@cortex/shared/dist
 COPY --from=base /app/packages/shared/package.json ./node_modules/@cortex/shared/
-COPY --from=base /app/node_modules ./node_modules
+RUN npm install --omit=dev
 
 ENV NODE_ENV=production
 EXPOSE 4000
