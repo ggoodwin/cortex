@@ -19,9 +19,6 @@ RUN pnpm build
 # Copy web dist into server public dir for static serving
 RUN cp -r packages/web/dist packages/server/public
 
-# Remove dev dependencies
-RUN pnpm prune --prod
-
 ENV NODE_ENV=production
 EXPOSE 4000
 WORKDIR /app/packages/server
