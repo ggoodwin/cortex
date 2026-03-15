@@ -1,16 +1,16 @@
 services:
-  qdrant:
-    image: qdrant/qdrant:latest
-    container_name: cortex-qdrant
-    restart: unless-stopped
-    ports:
-      - "${QDRANT_PORT:-6333}:6333"
-      - "${QDRANT_GRPC_PORT:-6334}:6334"
-    volumes:
-      - qdrant-data:/qdrant/storage
-    environment:
-      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY:-cortex-local-key}
-      - QDRANT__LOG_LEVEL=WARN
+  # qdrant:
+  #   image: qdrant/qdrant:latest
+  #   container_name: cortex-qdrant
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${QDRANT_PORT:-6333}:6333"
+  #     - "${QDRANT_GRPC_PORT:-6334}:6334"
+  #   volumes:
+  #     - qdrant-data:/qdrant/storage
+  #   environment:
+  #     - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY:-cortex-local-key}
+  #     - QDRANT__LOG_LEVEL=WARN
 
   app:
     build: .
@@ -18,13 +18,13 @@ services:
     restart: unless-stopped
     ports:
       - "${PORT:-4000}:4000"
-    env_file:
-      - .env
-    depends_on:
-      - qdrant
-    profiles:
-      - full
+    # env_file:
+    #   - .env
+    # depends_on:
+    #   - qdrant
+    # profiles:
+    #   - full
 
-volumes:
-  qdrant-data:
-    name: cortex-qdrant-data
+# volumes:
+#   qdrant-data:
+#     name: cortex-qdrant-data
