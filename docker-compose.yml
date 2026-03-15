@@ -14,7 +14,7 @@ services:
 
   app:
     build: .
-    container_name: cortex-app
+    container_name: cortex-api
     restart: unless-stopped
     ports:
       - "${PORT:-4000}:4000"
